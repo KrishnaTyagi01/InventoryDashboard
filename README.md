@@ -19,3 +19,26 @@ npm install && cd server && npm install && cd ../client && npm install
 
 # Run server (port 3001) and client (port 5173)
 npm run dev
+```
+
+## Technical Decisions
+
+State Management: TanStack Query for server state (caching, invalidation), Zustand for UI state (toasts, sidebar, filters)
+Routing: React Router with URL state sync for shareable deep links
+Styling: Tailwind CSS for rapid development
+Charts: Recharts for its React integration and responsive containers
+
+
+# Trade-offs
+
+Used in-memory data instead of a real DB for simplicity and faster setup
+No optimistic UI for bulk actions (just refetch after)
+Single large bundle (could split with lazy loading)
+
+
+# Improvements with more time
+
+Add unit tests
+Implement real-time updates with WebSockets
+Code splitting with React.lazy()
+Docker Compose for one-command setup
