@@ -52,7 +52,7 @@ function App() {
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-50">
         <Sidebar />
-        <main className="lg:ml-64 min-h-screen">
+        <main className="lg:ml-64 min-h-screen w-full lg:w-[calc(100%-16rem)]">
           <Routes>
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/orders" element={<OrdersPage />} />

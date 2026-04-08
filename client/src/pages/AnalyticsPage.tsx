@@ -24,9 +24,42 @@ import {
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#6366F1'];
 
+const RADIAN = Math.PI / 180;
+
+interface PieLabelProps {
+  cx: number;
+  cy: number;
+  midAngle: number;
+  innerRadius: number;
+  outerRadius: number;
+  percent: number;
+  name: string;
+}
+
+function renderCustomizedLabel({ cx, cy, midAngle, outerRadius, name, percent }: PieLabelProps) {
+  const radius = outerRadius + 30;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  if (percent < 0.05) return null;
+
+  return (
+    <text
+      x={x}
+      y={y}
+      fill="#374151"
+      textAnchor={x > cx ? 'start' : 'end'}
+      dominantBaseline="central"
+      fontSize={12}
+    >
+      {`${name} (${(percent * 100).toFixed(0)}%)`}
+    </text>
+  );
+}
+
 export function AnalyticsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  
+
   const startDate = searchParams.get('startDate') || '';
   const endDate = searchParams.get('endDate') || '';
 
@@ -66,32 +99,34 @@ export function AnalyticsPage() {
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
             <Calendar size={18} className="text-gray-400" />
-            <span className="text-sm font-medium text-gray-700">Date Range:</span>
+            <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Date Range:</span>
           </div>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => updateParams({ startDate: e.target.value })}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <span className="text-gray-400">to</span>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => updateParams({ endDate: e.target.value })}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          {(startDate || endDate) && (
-            <button
-              onClick={() => updateParams({ startDate: '', endDate: '' })}
-              className="text-sm text-blue-600 hover:text-blue-700"
-            >
-              Clear
-            </button>
-          )}
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => updateParams({ startDate: e.target.value })}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
+            />
+            <span className="text-gray-400">to</span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => updateParams({ endDate: e.target.value })}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
+            />
+            {(startDate || endDate) && (
+              <button
+                onClick={() => updateParams({ startDate: '', endDate: '' })}
+                className="text-sm text-blue-600 hover:text-blue-700 whitespace-nowrap"
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -174,29 +209,29 @@ export function AnalyticsPage() {
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={analytics?.ordersByDay || []}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                    <XAxis 
-                      dataKey="date" 
+                    <XAxis
+                      dataKey="date"
                       tick={{ fontSize: 12 }}
                       tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     />
                     <YAxis tick={{ fontSize: 12 }} />
-                    <Tooltip 
+                    <Tooltip
                       formatter={(value: number) => [value, 'Orders']}
                       labelFormatter={(label) => new Date(label).toLocaleDateString()}
                     />
                     <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="count" 
-                      stroke="#3B82F6" 
+                    <Line
+                      type="monotone"
+                      dataKey="count"
+                      stroke="#3B82F6"
                       strokeWidth={2}
                       name="Orders"
                       dot={false}
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="revenue" 
-                      stroke="#10B981" 
+                    <Line
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#10B981"
                       strokeWidth={2}
                       name="Revenue"
                       dot={false}
@@ -211,7 +246,7 @@ export function AnalyticsPage() {
               {analyticsLoading ? (
                 <ChartSkeleton />
               ) : (
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={400}>
                   <PieChart>
                     <Pie
                       data={analytics?.revenueByCategory || []}
@@ -219,16 +254,16 @@ export function AnalyticsPage() {
                       nameKey="category"
                       cx="50%"
                       cy="50%"
-                      outerRadius={100}
-                      label={({ category, percent }) => `${category} (${(percent * 100).toFixed(0)}%)`}
+                      outerRadius={120}
+                      label={renderCustomizedLabel}
                       labelLine={false}
+                      paddingAngle={2}
                     >
                       {(analytics?.revenueByCategory || []).map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                    <Legend />
                   </PieChart>
                 </ResponsiveContainer>
               )}
